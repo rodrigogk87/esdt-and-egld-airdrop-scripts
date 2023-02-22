@@ -1,0 +1,5 @@
+%python3 ESDTSender.py --filename=Holders.csv 
+                       --amount_airdrop=10000 
+                       --id=VIBE-3f3a04 
+                       --decimals=3 
+                       --pem=walletKey.pem 

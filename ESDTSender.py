@@ -6,7 +6,7 @@ from multiversx_sdk_network_providers import ProxyNetworkProvider
 from pathlib import Path
 
 import argparse
-
+from decimal import Decimal
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -33,18 +33,18 @@ eligible_holders = data_df[data_df.Address.apply(lambda x: "qqqqqq" not in x)]
 
 # Compute the total of token per address (not taking into account the number of NFT hold)
 # TMP FIX : Remove 0.0001 token per holder to avoid "insufficient funds" (due to Python's loss of precision)
-airdrop_per_holder = float(args.amount_airdrop) / (eligible_holders.shape[0]) - 1
+airdrop_per_holder = float(args.amount_airdrop) / (eligible_holders.shape[0]) - 0.001
 
 # Compute the weighted airdrop if set to true as an argument
 if args.weighted:
-    airdrop_per_NFT = float(args.amount_airdrop) / (eligible_holders.Count.sum()) - 1
+    airdrop_per_NFT = float(args.amount_airdrop) / (eligible_holders.Count.sum()) - 0.001
     eligible_holders["Airdrop"] = airdrop_per_NFT * data_df.Count
 
 
 # ---------------------------------------------------------------- #
 #                         CONSTANTS
 # ---------------------------------------------------------------- #
-TOKEN_DECIMALS = args.decimals  # default : 18
+TOKEN_DECIMALS = int(args.decimals)  # default : 18
 TOKEN_ID = args.id
 
 
@@ -52,8 +52,8 @@ TOKEN_ID = args.id
 #                   MAIN ESDT FUNCTION
 # ---------------------------------------------------------------- #
 def sendESDT(owner, owner_on_network, receiver, amount, signer):
-
-    payment = TokenPayment.fungible_from_amount("VIBE-3f3a04", "10000", 3)
+    payment = TokenPayment.fungible_from_amount(TOKEN_ID, amount , TOKEN_DECIMALS)
+    
     config = DefaultTransactionBuildersConfiguration(chain_id="D")
 
 

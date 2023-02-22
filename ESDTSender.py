@@ -33,11 +33,11 @@ eligible_holders = data_df[data_df.Address.apply(lambda x: "qqqqqq" not in x)]
 
 # Compute the total of token per address (not taking into account the number of NFT hold)
 # TMP FIX : Remove 0.0001 token per holder to avoid "insufficient funds" (due to Python's loss of precision)
-airdrop_per_holder = float(args.amount_airdrop) / (eligible_holders.shape[0]) - 0.0001
+airdrop_per_holder = float(args.amount_airdrop) / (eligible_holders.shape[0]) - 1
 
 # Compute the weighted airdrop if set to true as an argument
 if args.weighted:
-    airdrop_per_NFT = float(args.amount_airdrop) / (eligible_holders.Count.sum()) - 0.0001
+    airdrop_per_NFT = float(args.amount_airdrop) / (eligible_holders.Count.sum()) - 1
     eligible_holders["Airdrop"] = airdrop_per_NFT * data_df.Count
 
 
@@ -52,8 +52,10 @@ TOKEN_ID = args.id
 #                   MAIN ESDT FUNCTION
 # ---------------------------------------------------------------- #
 def sendESDT(owner, owner_on_network, receiver, amount, signer):
-    payment = TokenPayment.fungible_from_amount(TOKEN_ID, amount, TOKEN_DECIMALS)
-    config = DefaultTransactionBuildersConfiguration(chain_id="1")
+
+    payment = TokenPayment.fungible_from_amount("VIBE-3f3a04", "10000", 3)
+    config = DefaultTransactionBuildersConfiguration(chain_id="D")
+
 
     builder = ESDTTransferBuilder(
         config=config,
@@ -63,7 +65,8 @@ def sendESDT(owner, owner_on_network, receiver, amount, signer):
         nonce=owner_on_network.nonce
     )
     tx = builder.build()
-
+    print("Transaction:", tx.to_dictionary())
+    print("Transaction data:", tx.data)
     tx.signature = signer.sign(tx)
     hashes = provider.send_transaction(tx)
     owner_on_network.nonce += 1
@@ -75,12 +78,14 @@ def sendESDT(owner, owner_on_network, receiver, amount, signer):
 #                  SETTING MAINNET PARAMS
 # ---------------------------------------------------------------- #
 # The signer of the tokens, that will send them
-signer = UserSigner.from_pem_file(Path(f"./{args.pem}"))
-pem = UserPEM.from_file(Path(f"./{args.pem}"))
+
+signer = UserSigner.from_pem_file(Path("./walletKey.pem"))
+pem = UserPEM.from_file(Path("./walletKey.pem"))
 pubkey = bytes.fromhex(pem.public_key.hex())
 owner = Address(pubkey, "erd")
 
-provider = ProxyNetworkProvider("https://gateway.multiversx.com")
+#provider = ProxyNetworkProvider("https://gateway.multiversx.com")
+provider = ProxyNetworkProvider("https://devnet-gateway.multiversx.com")
 owner_on_network = provider.get_account(owner)
 
 # ---------------------------------------------------------------- #
@@ -93,6 +98,4 @@ for _, row in eligible_holders.iterrows():
 
     try:
         sendESDT(owner, owner_on_network, address, quantity, signer)
-    except:
-        # Keep those addresses aside for debugging, and re-sending after
-        print(address)
+    except Exception as e: print(e)

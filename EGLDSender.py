@@ -49,7 +49,7 @@ data = " ".join([str(item) for item in args.data])
 def sendEGLD(owner, owner_on_network, receiver, amount, signer):
 
     payment = TokenPayment.egld_from_amount(amount)
-    config = DefaultTransactionBuildersConfiguration(chain_id="1")
+    config = DefaultTransactionBuildersConfiguration(chain_id="D")
 
     builder = EGLDTransferBuilder(
         config=config,
@@ -79,7 +79,8 @@ pem = UserPEM.from_file(Path(f"./{args.pem}"))
 pubkey = bytes.fromhex(pem.public_key.hex())
 owner = Address(pubkey, "erd")
 
-provider = ProxyNetworkProvider("https://gateway.multiversx.com")
+#provider = ProxyNetworkProvider("https://gateway.multiversx.com")
+provider = ProxyNetworkProvider("https://devnet-gateway.multiversx.com")
 owner_on_network = provider.get_account(owner)
 
 # ---------------------------------------------------------------- #
